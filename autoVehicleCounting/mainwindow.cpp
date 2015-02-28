@@ -40,6 +40,7 @@ void MainWindow::on_openPushButton_clicked()
                 );
     if (selectedVideoString.size()!=0)
     {
+        if(ui->videoTableWidget->rowCount()==1)ui->videoTableWidget->removeRow(0);
         this->vpt->videoName = selectedVideoString.toStdString();
         //show filenames in table widget
         ui->videoTableWidget->insertRow(0);
@@ -57,5 +58,10 @@ void MainWindow::on_runPushButton_clicked()
 void MainWindow::on_stopPushButton_clicked()
 {
     this->vpt->stop = true;
+}
 
+void MainWindow::on_pushButton_clicked()
+{
+    if(ui->videoTableWidget->rowCount()==1)
+        ui->videoTableWidget->removeRow(0);
 }
