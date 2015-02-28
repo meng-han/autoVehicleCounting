@@ -8,12 +8,16 @@ videoProcessingThread::videoProcessingThread(QObject *parent) :
 void videoProcessingThread::run()
 {
     this->init();
+    int cnt = 0;
     while(true)
     {
+        ++cnt;
+        if(this->stop) {destroyAllWindows();break;}
         this->readNextFrame();
-        qDebug() << "true";
         if(this->frame.empty()) break;
-        imshow("hello world",this->frame);
+
+        this->bgs->process(this->frame,this->background,this->bgModel);
+        if(cnt > 2) emit showResults(this->background);
     }
 }
 
@@ -26,7 +30,6 @@ void videoProcessingThread::init()
     this->fps = this->capture.get(CV_CAP_PROP_FPS);
     if (this->fps == 29) this->fps = 30;
     this->totalFrameNumber = this->capture.get(CV_CAP_PROP_FRAME_COUNT);
-
 }
 
 void videoProcessingThread::readNextFrame()

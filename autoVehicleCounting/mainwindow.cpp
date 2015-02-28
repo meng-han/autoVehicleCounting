@@ -6,13 +6,29 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    this->vpt = new videoProcessingThread(this);
+    this->init();
+
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
 }
+
+void MainWindow::init()
+{
+    this->vpt = new videoProcessingThread(this);
+    qRegisterMetaType< Mat >("Mat");
+    connect(this->vpt,SIGNAL(showResults(Mat)),this,SLOT(on_showResults(Mat)));
+    this->vpt->stop = false;
+}
+
+
+void MainWindow::on_showResults(Mat frame)
+{
+    imshow("Current Frame", frame);
+}
+
 
 void MainWindow::on_openPushButton_clicked()
 {
@@ -34,5 +50,12 @@ void MainWindow::on_openPushButton_clicked()
 
 void MainWindow::on_runPushButton_clicked()
 {
+    this->vpt->stop = false;
     this->vpt->start();
+}
+
+void MainWindow::on_stopPushButton_clicked()
+{
+    this->vpt->stop = true;
+
 }

@@ -27,7 +27,7 @@ public:
     string videoName;
 
 signals:
-
+    void showResults(Mat);
 public slots:
 
 private:

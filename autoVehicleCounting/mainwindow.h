@@ -18,12 +18,14 @@ public:
 
 private slots:
     void on_openPushButton_clicked();
-
+    void on_showResults(Mat);
     void on_runPushButton_clicked();
+    void on_stopPushButton_clicked();
 
 private:
     Ui::MainWindow *ui;
     videoProcessingThread *vpt;
+    void init();
 };
 
 #endif // MAINWINDOW_H
