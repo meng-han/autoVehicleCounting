@@ -36,7 +36,7 @@ void MainWindow::on_openPushButton_clicked()
                 this,
                 tr("Open File"),
                 "D://",
-                "Video Files (*.avi && *.mp4 && *.mov && *.mkv)"
+                "Video Files (*.avi && *.mp4 && *.mov && *.mkv && *.wmv)"
                 );
     if (selectedVideoString.size()!=0)
     {

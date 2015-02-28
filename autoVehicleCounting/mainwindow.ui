@@ -6,88 +6,310 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1015</width>
-    <height>656</height>
+    <width>1068</width>
+    <height>698</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>AutoCounting</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QVBoxLayout" name="verticalLayout_2">
+   <layout class="QHBoxLayout" name="horizontalLayout_3">
     <item>
      <widget class="QSplitter" name="splitter_2">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
-      <widget class="QWidget" name="">
+      <widget class="QFrame" name="leftFrame">
+       <property name="styleSheet">
+        <string notr="true">#leftFrame {
+background: rgb(220,220,220);
+border: none;
+border-right: 1px solid black;
+}</string>
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::StyledPanel</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Raised</enum>
+       </property>
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout">
-          <item>
-           <widget class="QPushButton" name="openPushButton">
-            <property name="text">
-             <string>Open...</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="pushButton">
-            <property name="text">
-             <string>Delete</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <widget class="QTableWidget" name="videoTableWidget">
-          <attribute name="horizontalHeaderDefaultSectionSize">
-           <number>150</number>
-          </attribute>
-          <attribute name="horizontalHeaderMinimumSectionSize">
-           <number>100</number>
-          </attribute>
-          <attribute name="horizontalHeaderStretchLastSection">
-           <bool>true</bool>
-          </attribute>
-          <column>
-           <property name="text">
-            <string>Video Name</string>
-           </property>
-          </column>
-         </widget>
-        </item>
-        <item>
-         <spacer name="verticalSpacer">
+         <spacer name="verticalSpacer_6">
           <property name="orientation">
            <enum>Qt::Vertical</enum>
           </property>
           <property name="sizeHint" stdset="0">
            <size>
             <width>20</width>
-            <height>40</height>
+            <height>80</height>
            </size>
           </property>
          </spacer>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_2">
-          <item>
-           <widget class="QPushButton" name="runPushButton">
-            <property name="text">
-             <string>Run</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="stopPushButton">
-            <property name="text">
-             <string>Stop</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
+         <widget class="QFrame" name="frame">
+          <property name="styleSheet">
+           <string notr="true">QFrame{
+border-radius: 10px;
+background:#D4936A;
+}</string>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::StyledPanel</enum>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Raised</enum>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_3">
+           <item>
+            <spacer name="verticalSpacer_2">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Minimum</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>13</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout">
+             <item>
+              <widget class="QPushButton" name="openPushButton">
+               <property name="styleSheet">
+                <string notr="true">QPushButton {
+     background-color:#256E5E;
+	border:none;
+color:white;
+ max-width:100px;
+ max-height:40px;
+ min-width:100px;
+ min-height:40px;
+ }
+
+ QPushButton:pressed {
+     background-color:#AA7B39;
+ }
+
+QPushButton:hover{
+	border: 1px solid white;
+}
+
+
+
+</string>
+               </property>
+               <property name="text">
+                <string>Open...</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="pushButton">
+               <property name="styleSheet">
+                <string notr="true">QPushButton {
+     background-color:#91A437;
+	border:none;
+color:white;
+ max-width:100px;
+ max-height:40px;
+ min-width:100px;
+ min-height:40px;
+ }
+
+ QPushButton:pressed {
+     background-color:#041F37;
+ }
+
+QPushButton:hover{
+	border: 1px solid white;
+}
+
+
+
+</string>
+               </property>
+               <property name="text">
+                <string>Delete</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <spacer name="verticalSpacer">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Minimum</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>14</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QTableWidget" name="videoTableWidget">
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>70</height>
+              </size>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">background-color:white;
+</string>
+             </property>
+             <property name="editTriggers">
+              <set>QAbstractItemView::NoEditTriggers</set>
+             </property>
+             <attribute name="horizontalHeaderDefaultSectionSize">
+              <number>150</number>
+             </attribute>
+             <attribute name="horizontalHeaderMinimumSectionSize">
+              <number>100</number>
+             </attribute>
+             <attribute name="horizontalHeaderStretchLastSection">
+              <bool>true</bool>
+             </attribute>
+             <column>
+              <property name="text">
+               <string>Video Name</string>
+              </property>
+             </column>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_3">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Minimum</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>13</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <spacer name="verticalSpacer_4">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>79</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QFrame" name="frame_2">
+          <property name="styleSheet">
+           <string notr="true">QFrame{
+border-radius: 10px;
+background:#3D6B99;
+}</string>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::StyledPanel</enum>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Raised</enum>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_2">
+           <item>
+            <widget class="QPushButton" name="runPushButton">
+             <property name="styleSheet">
+              <string notr="true">QPushButton {
+      background-color: #1FB255;
+
+ border-radius:40px;
+
+ max-width:80px;
+ max-height:80px;
+ min-width:80px;
+ min-height:80px;
+ }
+
+ QPushButton:pressed {
+     background-color: rgb(51, 255, 153);
+ }
+
+QPushButton:hover{
+	border: 1px solid white;
+}
+
+</string>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="stopPushButton">
+             <property name="styleSheet">
+              <string notr="true">QPushButton {
+      background-color: #FF4C45;
+
+ border-radius:40px;
+
+ max-width:80px;
+ max-height:80px;
+ min-width:80px;
+ min-height:80px;
+ }
+
+ QPushButton:pressed {
+     background-color: rgb(51, 255, 153);
+ }
+
+QPushButton:hover{
+	border: 1px solid white;
+}
+
+</string>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <spacer name="verticalSpacer_5">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>80</height>
+           </size>
+          </property>
+         </spacer>
         </item>
        </layout>
       </widget>
@@ -104,10 +326,22 @@
          <height>0</height>
         </size>
        </property>
+       <property name="styleSheet">
+        <string notr="true"> #splitter {
+     background: rgb(220,220,220);
+	border: none;
+	border-left: 1px solid black;
+ }</string>
+       </property>
        <property name="orientation">
         <enum>Qt::Vertical</enum>
        </property>
-       <widget class="QCustomPlot" name="turnsWidget" native="true"/>
+       <widget class="QCustomPlot" name="turnsWidget" native="true">
+        <property name="styleSheet">
+         <string notr="true"/>
+        </property>
+        <zorder>frame</zorder>
+       </widget>
        <widget class="QCustomPlot" name="vehiclesWidget" native="true"/>
       </widget>
      </widget>
@@ -119,7 +353,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1015</width>
+     <width>1068</width>
      <height>26</height>
     </rect>
    </property>
