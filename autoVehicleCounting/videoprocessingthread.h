@@ -3,7 +3,7 @@
 
 #include <QThread>
 #include <QDebug>
-
+#include <QList>
 //OpenCV Headers
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -16,6 +16,8 @@
 #include <iostream>
 #include "WeightedMovingVarianceBGS.h"
 #include "framedifferencebgs.h"
+#include "vehicle.h"
+
 using namespace std;
 using namespace cv;
 
@@ -33,6 +35,7 @@ signals:
 public slots:
 
 private:
+    QList<vehicle> vehicles;
     int fps;
     WeightedMovingVarianceBGS* bgs;
     Ptr<BackgroundSubtractor> pMOG2; //MOG2 Background subtractor
@@ -48,6 +51,7 @@ private:
     void readNextFrame();
     void detectObjects();
     int processingFPS = 15;
+    int totalNumberOfVehicles = 0;
 
     Mat frame;
     Mat background;
@@ -57,6 +61,21 @@ private:
 
     int contour_thresh = 100;
     double rect_delete_thresh = 0.02;
+
+    void initializeVehicles();
+    vehicle setUpNewVehicle(int j);
+    void assignVehicles();
+    bool withinFrame(vehicle t);
+    double predictKalman(Rect rect, int j);
+    int min_row;
+    int min_column;
+    double findMinElement(vector<vector<double> > distanceMatrix);
+    void displayResults();
+
+
+
+
+
 
 };
 
