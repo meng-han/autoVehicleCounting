@@ -13,6 +13,7 @@ public:
     int id;
     Mat detection;
     Rect rect;
+    RotatedRect rRect;
     bool present;
     KalmanFilter KF;
     int totalVisibleCount;

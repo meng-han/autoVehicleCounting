@@ -58,15 +58,16 @@ private:
     Mat bgModel;
     Mat img_closing;
     vector<Rect> boundRect;
+    vector<RotatedRect> rotatedRect;
 
     int contour_thresh = 100;
-    double rect_delete_thresh = 0.02;
+    double rect_delete_thresh = 0.01;
 
     void initializeVehicles();
     vehicle setUpNewVehicle(int j);
     void assignVehicles();
     bool withinFrame(vehicle t);
-    double predictKalman(Rect rect, int j);
+    double predictKalman(RotatedRect rect, int j);
     int min_row;
     int min_column;
     double findMinElement(vector<vector<double> > distanceMatrix);

@@ -35,7 +35,7 @@ void MainWindow::on_openPushButton_clicked()
     QString selectedVideoString =  QFileDialog::getOpenFileName(
                 this,
                 tr("Open File"),
-                "D://",
+                "C:\\Users\\Meng\\Documents\\Qt Projects\\AutoCarCounting",
                 "Video Files (*.avi && *.mp4 && *.mov && *.mkv && *.wmv)"
                 );
     if (selectedVideoString.size()!=0)

@@ -30,6 +30,12 @@ void videoProcessingThread::run()
                 this->displayResults();
             }
             this->wtr.write(this->frame);
+            /*if(cnt == 200)
+            {
+                imwrite("result.png",this->background);
+                imwrite("img_closing.png",this->img_closing);
+                imwrite("track.png",this->frame);
+            }*/
         }
 
     }
@@ -72,22 +78,35 @@ void videoProcessingThread::detectObjects()
     cv::findContours( threshold_output, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
     vector<vector<Point> > contours_poly( contours.size() );
     this->boundRect.resize(contours.size());
+
+
+    this->rotatedRect.resize(contours.size());
+    qDebug() << this->rotatedRect.size();
     //Fit rect
     for( int n = (int)contours.size() - 1; n >= 0; n-- )
     {
         approxPolyDP( Mat(contours[n]), contours_poly[n], 3, true );
         boundRect[n] = cv::boundingRect( Mat(contours_poly[n]) );
+        this->rotatedRect[n] = minAreaRect( Mat(contours_poly[n]) );
         if(boundRect[n].area() <= img_closing.cols * img_closing.rows * this->rect_delete_thresh
                 && boundRect[n].area() < img_closing.cols * img_closing.rows * 0.4)
         {
             boundRect.erase(boundRect.begin() + n);
+            this->rotatedRect.erase(this->rotatedRect.begin() + n);
+            qDebug() << this->rotatedRect.size();
         }
+        //if(rotatedRect[n].area() <= img_closing.cols * img_closing.rows * this->rect_delete_thresh
+        //        && rotatedRect[n].area() < img_closing.cols * img_closing.rows * 0.4)
+        //{
+        //    this->rotatedRect.erase(this->rotatedRect.begin() + n);
+        //}
     }
 
 }
 
 void videoProcessingThread::initializeVehicles(){
-    for (int j = 0; j < this->boundRect.size(); j ++)
+    for (int j = 0; j < this->rotatedRect.size(); j ++)
+    //for (int j = 0; j < this->boundRect.size(); j ++)
     {
         vehicle v = setUpNewVehicle(j);
         v.start = 0;
@@ -124,7 +143,8 @@ vehicle videoProcessingThread::setUpNewVehicle(int j){
     setIdentity(v.KF.processNoiseCov, Scalar::all(1e-4));
     setIdentity(v.KF.measurementNoiseCov, Scalar::all(1e-1));
     setIdentity(v.KF.errorCovPost, Scalar::all(.1));
-    v.rect = this->boundRect[j];
+    //v.rect = this->boundRect[j];
+    v.rRect = this->rotatedRect[j];
     return v;
 }
 
@@ -134,7 +154,7 @@ void videoProcessingThread::assignVehicles(){
     bool unassignedTracks[100];
     vector<int> vehiclesPresent;
 
-    for(int i = 0; i < this->boundRect.size(); i++) newDetections[i] = false;
+    for(int i = 0; i < this->rotatedRect.size(); i++) newDetections[i] = false;
     for(int i = 0; i < this->vehicles.size(); i++)
     {
         unassignedTracks[i] = false;
@@ -145,18 +165,18 @@ void videoProcessingThread::assignVehicles(){
     }
 
     vector<int> newDetectionsIndex;
-    for(int i = 0; i < this->boundRect.size(); i++)
+    for(int i = 0; i < this->rotatedRect.size(); i++)
     {
         newDetectionsIndex.push_back(i);
     }
     //Calculate distance matrix: Row: detections, Column: Present tracks
     vector<vector<double> > distanceMatrix;
-    for (int i = 0; i < this->boundRect.size(); i++)
+    for (int i = 0; i < this->rotatedRect.size(); i++)
     {
         vector<double> distanceRow;
         for (int j = 0; j < vehiclesPresent.size(); j++)
         {
-            double per = predictKalman(this->boundRect[i], vehiclesPresent[j]);
+            double per = predictKalman(this->rotatedRect[i], vehiclesPresent[j]);
             distanceRow.push_back(per);
         }
         distanceMatrix.push_back(distanceRow);
@@ -169,12 +189,15 @@ void videoProcessingThread::assignVehicles(){
         //cout << "THIS IS MIN_ELEMENT = " << min_element << " closest index" << trackClosestIndex << endl;
         int detectClosestIndex = newDetectionsIndex[min_row];
         //vehicles[trackClosestIndex].detection = this->subDetections[detectClosestIndex];
-        vehicles[trackClosestIndex].rect = this->boundRect[detectClosestIndex];
+        vehicles[trackClosestIndex].rRect = this->rotatedRect[detectClosestIndex];
         vehicles[trackClosestIndex].present = true;
         vehicles[trackClosestIndex].totalVisibleCount ++;
         vehicles[trackClosestIndex].invisibleCount = 0;
-        measurement(0) = this->boundRect[detectClosestIndex].x + 0.5 * this->boundRect[detectClosestIndex].width;
-        measurement(1) = this->boundRect[detectClosestIndex].y + 0.5 * this->boundRect[detectClosestIndex].height;
+        Point2f vertices[4];
+        this->rotatedRect[detectClosestIndex].points(vertices);
+
+        measurement(0) = vertices[0].x * 0.5 + vertices[2].x * 0.5;
+        measurement(1) = vertices[0].y * 0.5 + vertices[2].y * 0.5;
         Mat estimated = vehicles[trackClosestIndex].KF.correct(measurement);
         Point statePt(estimated.at<float>(0), estimated.at<float>(1));
         circle(this->frame, statePt, 10, cv::Scalar(0, 255, 0), -1, 8, 0);
@@ -239,7 +262,7 @@ void videoProcessingThread::assignVehicles(){
 
     //Check if we have more detections than tracks, the new guy can be someone who showed up before,
     //or someone who never showed up
-    for(int i = 0; i < this->boundRect.size() ; i++)
+    for(int i = 0; i < this->rotatedRect.size() ; i++)
     {
         //If a guy was never here before, but now he showed up: create a new track for this guy
         if (newDetections[i] == false)
@@ -263,13 +286,15 @@ bool videoProcessingThread::withinFrame(vehicle t)
     }
 }
 
-double videoProcessingThread::predictKalman(Rect rect, int j)
+double videoProcessingThread::predictKalman(RotatedRect rect, int j)
 {
     Mat_<float> measurement(2,1);
     Mat prediction = vehicles[j].KF.predict();
     Point predictPt(prediction.at<float>(0), prediction.at<float>(1));
-    measurement(0) = rect.x + 0.5 * rect.width;
-    measurement(1) = rect.y + 0.5 * rect.height;
+    Point2f vertices[4];
+    rect.points(vertices);
+    measurement(0) = vertices[0].x * 0.5 +  vertices[2].x * 0.5;
+    measurement(1) = vertices[0].y * 0.5 +  vertices[2].y * 0.5;
     Point measPt(measurement(0), measurement(1));
     //Calculate the distance between predicted point and measurement
     double distance =  pow(pow(predictPt.x - measurement(0), 2) + pow(predictPt.y - measurement(1), 2), 0.5);
@@ -304,13 +329,16 @@ void videoProcessingThread::displayResults()
         if(vehicles[i].present == true)
         {
             //cout << "operator" << i << endl;
-            rectangle( this->frame, vehicles[i].rect.tl(), vehicles[i].rect.br(), cv::Scalar(204,102,0), 2, 8, 0 );
+            Point2f rect_points[4]; vehicles[i].rRect.points( rect_points );
+            for( int j = 0; j < 4; j++ )
+                 line( this->frame, rect_points[j], rect_points[(j+1)%4], cv::Scalar(204,102,0), 2, 8 );
+            //rectangle( this->frame, vehicles[i].rRect.tl(), vehicles[i].rRect.br(), cv::Scalar(204,102,0), 2, 8, 0 );
             rectangle( this->frame, cv::Point(vehicles[i].rect.x, vehicles[i].rect.height - 30 + vehicles[i].rect.y), vehicles[i].rect.br(), cv::Scalar(204,102,0), -1, 8, 0);
             std::ostringstream s;
             s << "Vehicle " << vehicles[i].id;
             //s << vehicles[i].id;
             string text = s.str();
-            putText(this->frame, text, Point(vehicles[i].rect.x, vehicles[i].rect.y + vehicles[i].rect.height - 10),  FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255,255,255), 1, 8, false);
+            putText(this->frame, text, Point(rect_points[0].x, rect_points[0].y),  FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255,255,255), 1, 8, false);
         }
     }
 
