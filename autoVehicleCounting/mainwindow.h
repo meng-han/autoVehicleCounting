@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include "videoprocessingthread.h"
+#include "qcustomplot.h"
 
 namespace Ui {
 class MainWindow;
@@ -19,15 +20,20 @@ public:
 private slots:
     void on_openPushButton_clicked();
     void on_showResults(Mat);
+    void on_showAerial(Mat);
     void on_runPushButton_clicked();
     void on_stopPushButton_clicked();
 
     void on_pushButton_clicked();
-
+    void on_maneuverCount(int);
 private:
     Ui::MainWindow *ui;
     videoProcessingThread *vpt;
     void init();
+    QVector<double> ticks;
+    QVector<double> counts;
+    QCPBars *turns;
+
 };
 
 #endif // MAINWINDOW_H

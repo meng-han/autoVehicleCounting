@@ -1,4 +1,5 @@
 #include "videoprocessingthread.h"
+#include <iomanip>      // std::setprecision
 
 videoProcessingThread::videoProcessingThread(QObject *parent) :
     QThread(parent)
@@ -21,16 +22,21 @@ void videoProcessingThread::run()
         if(!this->background.empty())
         {
             this->detectObjects();
+
             emit showResults(this->frame);
+            emit showAerial(this->aerial);
             if(cnt == 2)
             {
                 this->initializeVehicles();
             } else {
+
                 this->assignVehicles();
+
                 this->displayResults();
+
             }
             this->wtr.write(this->frame);
-            /*if(cnt == 200)
+            /*if(cnt == 15)
             {
                 imwrite("result.png",this->background);
                 imwrite("img_closing.png",this->img_closing);
@@ -45,6 +51,22 @@ void videoProcessingThread::run()
 
 void videoProcessingThread::init()
 {
+    colors << cv::Scalar(93,130,150) << cv::Scalar(150, 113, 93) << cv::Scalar(93, 150, 118) << cv::Scalar(150, 93, 125)
+              << cv::Scalar(179, 146, 89) << cv::Scalar(89, 122, 179) << cv::Scalar(179, 89, 90) << cv::Scalar(89, 179, 178)
+                 << cv::Scalar(155, 155, 155) << cv::Scalar(140, 97, 126) ;
+    this->tMatrix[0][0] = 0.0017273867;
+    this->tMatrix[0][1] = 0.000639764;
+    this->tMatrix[0][2] = 0.721077348;
+    this->tMatrix[1][0] = 0.0017145203;
+    this->tMatrix[1][1] = 0.008397438347;
+    this->tMatrix[1][2] = -0.69277943536;
+    this->tMatrix[2][0] = 0.00000068245336377;
+    this->tMatrix[2][1] = 0.00002001935931552;
+    this->tMatrix[2][2] = 0.005221229;
+    this->maneuvers << "West Left Turn" << "West Straight" << "West Right Turn" << "South Left Turn" << "South Straight"
+                       << "South Right Turn" << "East Left Turn" << "East Straight" << "East Right Turn" <<
+                          "North Left Turn" << "North Straight" << "North Right Turn";
+    //>> t = [0.00172738676563552,0.000639764294494792,0.721077348549566;0.00171452030901329,0.00839743834713821,-0.692779435360021;6.82453363774232e-07,2.00193593155218e-05,0.00522122932491429]
     this->bgs = new WeightedMovingVarianceBGS;
     this->pMOG2 = new BackgroundSubtractorMOG2(5, 16, false); //MOG2 approach
     this->fbgs = new FrameDifferenceBGS;
@@ -55,6 +77,7 @@ void videoProcessingThread::init()
     if (this->fps == 29) this->fps = 30;
     this->totalFrameNumber = this->capture.get(CV_CAP_PROP_FRAME_COUNT);
     this->wtr.open("C:/Users/Meng/Documents/Qt Projects/AutoCarCounting/output.avi",CV_FOURCC('X','V','I','D'),15, cv::Size(this->width, this->height));
+    this->aerial = imread("C:\\Users\\Meng\\Documents\\Qt Projects\\AutoCarCounting\\aerial.png");
 }
 
 void videoProcessingThread::readNextFrame()
@@ -81,7 +104,6 @@ void videoProcessingThread::detectObjects()
 
 
     this->rotatedRect.resize(contours.size());
-    qDebug() << this->rotatedRect.size();
     //Fit rect
     for( int n = (int)contours.size() - 1; n >= 0; n-- )
     {
@@ -93,7 +115,6 @@ void videoProcessingThread::detectObjects()
         {
             boundRect.erase(boundRect.begin() + n);
             this->rotatedRect.erase(this->rotatedRect.begin() + n);
-            qDebug() << this->rotatedRect.size();
         }
         //if(rotatedRect[n].area() <= img_closing.cols * img_closing.rows * this->rect_delete_thresh
         //        && rotatedRect[n].area() < img_closing.cols * img_closing.rows * 0.4)
@@ -101,6 +122,22 @@ void videoProcessingThread::detectObjects()
         //    this->rotatedRect.erase(this->rotatedRect.begin() + n);
         //}
     }
+
+    int rotatedRectSize = this->rotatedRect.size();
+    for(int i = rotatedRectSize - 1; i >=0; i--)
+    {
+        Point2f vertices[4];
+        this->rotatedRect[i].points(vertices);
+        double width = pow(pow(vertices[0].x - vertices[1].x,2) + pow(vertices[0].y - vertices[1].y,2),0.5);
+        double height = pow(pow(vertices[0].x - vertices[3].x,2) + pow(vertices[0].y - vertices[3].y,2),0.5);
+        double longer = max(width,height);
+        double shorter = min(width,height);
+        if(longer / shorter > 4)
+        {
+            this->rotatedRect.erase(this->rotatedRect.begin() + i);
+        }
+    }
+
 
 }
 
@@ -146,6 +183,16 @@ vehicle videoProcessingThread::setUpNewVehicle(int j){
     //v.rect = this->boundRect[j];
     v.rRect = this->rotatedRect[j];
     return v;
+}
+
+cv::Point videoProcessingThread::transformToAerial(int x1, int y1)
+{
+    double x2 = x1 * 1.0 * this->tMatrix[0][0] + y1 * 1.0 * this->tMatrix[0][1] + 1.0 * this->tMatrix[0][2];
+    double y2 = x1 * 1.0 * this->tMatrix[1][0] + y1 * 1.0 * this->tMatrix[1][1] + 1.0 * this->tMatrix[1][2];
+    double norm = x1 * 1.0 * this->tMatrix[2][0] + y1 * 1.0 * this->tMatrix[2][1] + 1.0 * this->tMatrix[2][2];
+    x2 /= norm;
+    y2 /= norm;
+    return cv::Point(x2,y2);
 }
 
 void videoProcessingThread::assignVehicles(){
@@ -196,8 +243,14 @@ void videoProcessingThread::assignVehicles(){
         Point2f vertices[4];
         this->rotatedRect[detectClosestIndex].points(vertices);
 
-        measurement(0) = vertices[0].x * 0.5 + vertices[2].x * 0.5;
-        measurement(1) = vertices[0].y * 0.5 + vertices[2].y * 0.5;
+        measurement(0) = vertices[0].x * 0.5 + vertices[2].x * 0.5; //cols
+        measurement(1) = vertices[0].y * 0.5 + vertices[2].y * 0.5; //rows
+        //if(vehicles[trackClosestIndex].trajectory.size() == 10)
+        //{
+        //    vehicles[trackClosestIndex].trajectory.pop_front();
+        //}
+        vehicles[trackClosestIndex].trajectory.push_back(cv::Point(measurement(0),measurement(1)));
+        vehicles[trackClosestIndex].aerialTrajectory.push_back(transformToAerial(measurement(0),measurement(1)));
         Mat estimated = vehicles[trackClosestIndex].KF.correct(measurement);
         Point statePt(estimated.at<float>(0), estimated.at<float>(1));
         circle(this->frame, statePt, 10, cv::Scalar(0, 255, 0), -1, 8, 0);
@@ -234,7 +287,12 @@ void videoProcessingThread::assignVehicles(){
                 {
                     vehicles[i].present = false;
                     //vehicles[i].stop = this->cnt_iter;
+                    //qDebug() << vehicles[i];
 
+                    if(vehicles[i].aerialTrajectory.size()>5)
+                    {
+                        emit maneuverCount(vehicles[i].getManeuver());
+                    }
                     vehicles[i].totalVisibleCount = 0;
                 } else {
                     vehicles[i].present = true;
@@ -245,6 +303,10 @@ void videoProcessingThread::assignVehicles(){
             } else {
                 //If his predicted point is out of the scene, regard him as gone.
                 vehicles[i].present = false;
+                if(vehicles[i].aerialTrajectory.size()>5)
+                {
+                    emit maneuverCount(vehicles[i].getManeuver());
+                }
                 vehiclesToDelete.push_back(i);
                 //vehicles[i].stop = this->cnt_iter;
                 //this->logToBuffer(i);
@@ -328,17 +390,50 @@ void videoProcessingThread::displayResults()
     {
         if(vehicles[i].present == true)
         {
+            int colorIndex = vehicles[i].id % 10;
+            qDebug() << colorIndex;
             //cout << "operator" << i << endl;
             Point2f rect_points[4]; vehicles[i].rRect.points( rect_points );
             for( int j = 0; j < 4; j++ )
-                 line( this->frame, rect_points[j], rect_points[(j+1)%4], cv::Scalar(204,102,0), 2, 8 );
+                 line( this->frame, rect_points[j], rect_points[(j+1)%4], this->colors.at(colorIndex), 2, 8 );
             //rectangle( this->frame, vehicles[i].rRect.tl(), vehicles[i].rRect.br(), cv::Scalar(204,102,0), 2, 8, 0 );
-            rectangle( this->frame, cv::Point(vehicles[i].rect.x, vehicles[i].rect.height - 30 + vehicles[i].rect.y), vehicles[i].rect.br(), cv::Scalar(204,102,0), -1, 8, 0);
+            //rectangle( this->frame, cv::Point(vehicles[i].rect.x, vehicles[i].rect.height - 30 + vehicles[i].rect.y), vehicles[i].rect.br(), cv::Scalar(204,102,0), -1, 8, 0);
             std::ostringstream s;
+            std::ostringstream t;
             s << "Vehicle " << vehicles[i].id;
             //s << vehicles[i].id;
+            if(vehicles[i].trajectory.size() > 5)
+            {
+
+                s << "  M: "<< this->maneuvers.at(vehicles[i].getManeuver()-1).toStdString();
+                double speed = 0;
+                int sizeOfTrajectory = vehicles[i].trajectory.size();
+                for(int k = sizeOfTrajectory - 1; k >= sizeOfTrajectory - 4; k--)
+                {
+                    int xDiff = vehicles[i].aerialTrajectory.at(k).x - vehicles[i].aerialTrajectory.at(k-1).x;
+                    int yDiff = vehicles[i].aerialTrajectory.at(k).y - vehicles[i].aerialTrajectory.at(k-1).y;
+                    double pixelDistance = pow(xDiff*xDiff + yDiff*yDiff,0.5);
+                    double actualDistance = pixelDistance * 0.403;
+                    speed += actualDistance * this->processingFPS * 0.681818; //Calculate speed in MPH
+                }
+                speed/=4;
+
+                t << setprecision(3)<<  speed << " MPH";
+            }
+            string speedText = t.str();
             string text = s.str();
-            putText(this->frame, text, Point(rect_points[0].x, rect_points[0].y),  FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255,255,255), 1, 8, false);
+            putText(this->frame, speedText, Point(rect_points[1].x, rect_points[1].y), FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0,0,0), 1, 8, false);
+            putText(this->frame, text, Point(rect_points[0].x, rect_points[0].y),  FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0,0,0), 1, 8, false);
+            for(int j = 0; j < vehicles[i].trajectory.size(); j++)
+                circle(this->frame, vehicles[i].trajectory.at(j), 5, this->colors.at(colorIndex), -1, 8, 0);
+
+            for(int j = 0; j < vehicles[i].trajectory.size(); j++)
+                circle(this->aerial, vehicles[i].aerialTrajectory.at(j), 5, this->colors.at(colorIndex), -1, 8, 0);
+
+
+
+
+
         }
     }
 

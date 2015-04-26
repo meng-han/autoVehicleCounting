@@ -5,6 +5,8 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/video/tracking.hpp"
+#include <deque>
+
 using namespace std;
 using namespace cv;
 
@@ -20,6 +22,11 @@ public:
     int invisibleCount;
     int start;
     int stop;
+    deque<cv::Point> trajectory;
+    deque<cv::Point> aerialTrajectory;
+    int maneuver;
+    int getManeuver();
+
 };
 
 

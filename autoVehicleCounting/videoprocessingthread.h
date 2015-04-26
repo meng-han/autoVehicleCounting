@@ -32,6 +32,9 @@ public:
 
 signals:
     void showResults(Mat);
+    void showAerial(Mat);
+    void maneuverCount(int);
+
 public slots:
 
 private:
@@ -45,14 +48,14 @@ private:
     int width;
     int height;
     int totalFrameNumber;
-    int morph_size = 5;
+    int morph_size = 3;
     Mat element = getStructuringElement( MORPH_RECT, Size( 2*morph_size + 1, 2*morph_size+1 ), Point( morph_size, morph_size ) );
     void init();
     void readNextFrame();
     void detectObjects();
     int processingFPS = 15;
     int totalNumberOfVehicles = 0;
-
+    Mat aerial;
     Mat frame;
     Mat background;
     Mat bgModel;
@@ -60,8 +63,8 @@ private:
     vector<Rect> boundRect;
     vector<RotatedRect> rotatedRect;
 
-    int contour_thresh = 100;
-    double rect_delete_thresh = 0.01;
+    int contour_thresh = 150;
+    double rect_delete_thresh = 0.006;
 
     void initializeVehicles();
     vehicle setUpNewVehicle(int j);
@@ -73,6 +76,12 @@ private:
     double findMinElement(vector<vector<double> > distanceMatrix);
     void displayResults();
 
+    double tMatrix[3][3];
+
+    QList<cv::Scalar> colors;
+    cv::Point transformToAerial(int x1, int y1);
+
+    QStringList maneuvers;
 
 
 

@@ -7,11 +7,11 @@
     <x>0</x>
     <y>0</y>
     <width>1068</width>
-    <height>698</height>
+    <height>497</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>AutoCounting</string>
+   <string>Automatic Maneuvers Counting</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -53,7 +53,7 @@ border-right: 1px solid black;
           <property name="styleSheet">
            <string notr="true">QFrame{
 border-radius: 10px;
-background:#D4936A;
+background:#A1AFAF;
 }</string>
           </property>
           <property name="frameShape">
@@ -85,7 +85,7 @@ background:#D4936A;
               <widget class="QPushButton" name="openPushButton">
                <property name="styleSheet">
                 <string notr="true">QPushButton {
-     background-color:#256E5E;
+     background-color:#034747;
 	border:none;
 color:white;
  max-width:100px;
@@ -95,7 +95,7 @@ color:white;
  }
 
  QPushButton:pressed {
-     background-color:#AA7B39;
+     background-color:#034747;
  }
 
 QPushButton:hover{
@@ -115,7 +115,7 @@ QPushButton:hover{
               <widget class="QPushButton" name="pushButton">
                <property name="styleSheet">
                 <string notr="true">QPushButton {
-     background-color:#91A437;
+     background-color:#538585;
 	border:none;
 color:white;
  max-width:100px;
@@ -125,7 +125,7 @@ color:white;
  }
 
  QPushButton:pressed {
-     background-color:#041F37;
+     background-color:#538585;
  }
 
 QPushButton:hover{
@@ -227,7 +227,7 @@ QPushButton:hover{
           <property name="styleSheet">
            <string notr="true">QFrame{
 border-radius: 10px;
-background:#3D6B99;
+background:#C7D1D6;
 }</string>
           </property>
           <property name="frameShape">
@@ -241,7 +241,7 @@ background:#3D6B99;
             <widget class="QPushButton" name="runPushButton">
              <property name="styleSheet">
               <string notr="true">QPushButton {
-      background-color: #1FB255;
+      background-color: #31C453;
 
  border-radius:40px;
 
@@ -340,9 +340,7 @@ QPushButton:hover{
         <property name="styleSheet">
          <string notr="true"/>
         </property>
-        <zorder>frame</zorder>
        </widget>
-       <widget class="QCustomPlot" name="vehiclesWidget" native="true"/>
       </widget>
      </widget>
     </item>
@@ -367,18 +365,13 @@ QPushButton:hover{
     <addaction name="actionRun"/>
     <addaction name="actionStop"/>
    </widget>
-   <widget class="QMenu" name="menuWindow">
-    <property name="title">
-     <string>Window</string>
-    </property>
-   </widget>
    <widget class="QMenu" name="menuAbout">
     <property name="title">
      <string>About</string>
     </property>
+    <addaction name="actionAbout"/>
    </widget>
    <addaction name="menuFile"/>
-   <addaction name="menuWindow"/>
    <addaction name="menuAbout"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
@@ -408,6 +401,11 @@ QPushButton:hover{
   <action name="actionRun">
    <property name="text">
     <string>Run</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About ...</string>
    </property>
   </action>
  </widget>
