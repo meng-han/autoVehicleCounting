@@ -67,7 +67,7 @@ void MainWindow::init()
     ui->turnsWidget->xAxis->setRange(0, 13);
 
     // prepare y axis:
-    ui->turnsWidget->yAxis->setRange(0, 100);
+    ui->turnsWidget->yAxis->setRange(0, 40);
     ui->turnsWidget->yAxis->setPadding(5); // a bit more space to the left border
     ui->turnsWidget->yAxis->setLabel("Maneuvers Count");
     ui->turnsWidget->yAxis->grid()->setSubGridVisible(true);
@@ -84,15 +84,22 @@ void MainWindow::init()
 
 
 
+
+
 }
 
 void MainWindow::on_showAerial(Mat aerial)
 {
+
+    namedWindow("Aerial Image",CV_NORMAL);
+    //moveWindow("Aerial Image", 300, 700);
     imshow("Aerial Image", aerial);
 }
 
 void MainWindow::on_showResults(Mat frame)
 {
+    namedWindow("Current Frame",CV_NORMAL);
+    //moveWindow("Current Frame", 1000, 700);
     imshow("Current Frame", frame);
 }
 

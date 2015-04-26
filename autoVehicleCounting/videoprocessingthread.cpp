@@ -53,7 +53,7 @@ void videoProcessingThread::init()
 {
     colors << cv::Scalar(93,130,150) << cv::Scalar(150, 113, 93) << cv::Scalar(93, 150, 118) << cv::Scalar(150, 93, 125)
               << cv::Scalar(179, 146, 89) << cv::Scalar(89, 122, 179) << cv::Scalar(179, 89, 90) << cv::Scalar(89, 179, 178)
-                 << cv::Scalar(155, 155, 155) << cv::Scalar(140, 97, 126) ;
+                 << cv::Scalar(155, 155, 155) << cv::Scalar(140, 97, 126) << cv::Scalar(0,0,255) ;
     this->tMatrix[0][0] = 0.0017273867;
     this->tMatrix[0][1] = 0.000639764;
     this->tMatrix[0][2] = 0.721077348;
@@ -391,11 +391,9 @@ void videoProcessingThread::displayResults()
         if(vehicles[i].present == true)
         {
             int colorIndex = vehicles[i].id % 10;
-            qDebug() << colorIndex;
             //cout << "operator" << i << endl;
             Point2f rect_points[4]; vehicles[i].rRect.points( rect_points );
-            for( int j = 0; j < 4; j++ )
-                 line( this->frame, rect_points[j], rect_points[(j+1)%4], this->colors.at(colorIndex), 2, 8 );
+
             //rectangle( this->frame, vehicles[i].rRect.tl(), vehicles[i].rRect.br(), cv::Scalar(204,102,0), 2, 8, 0 );
             //rectangle( this->frame, cv::Point(vehicles[i].rect.x, vehicles[i].rect.height - 30 + vehicles[i].rect.y), vehicles[i].rect.br(), cv::Scalar(204,102,0), -1, 8, 0);
             std::ostringstream s;
@@ -408,18 +406,43 @@ void videoProcessingThread::displayResults()
                 s << "  M: "<< this->maneuvers.at(vehicles[i].getManeuver()-1).toStdString();
                 double speed = 0;
                 int sizeOfTrajectory = vehicles[i].trajectory.size();
+                int acCase = 0;
                 for(int k = sizeOfTrajectory - 1; k >= sizeOfTrajectory - 4; k--)
                 {
                     int xDiff = vehicles[i].aerialTrajectory.at(k).x - vehicles[i].aerialTrajectory.at(k-1).x;
                     int yDiff = vehicles[i].aerialTrajectory.at(k).y - vehicles[i].aerialTrajectory.at(k-1).y;
                     double pixelDistance = pow(xDiff*xDiff + yDiff*yDiff,0.5);
                     double actualDistance = pixelDistance * 0.403;
-                    speed += actualDistance * this->processingFPS * 0.681818; //Calculate speed in MPH
+                    double tempSpeed = actualDistance * this->processingFPS * 0.681818; //Calculate speed in MPH
+                    if(tempSpeed < 50)
+                    {
+                        speed += tempSpeed;
+                        acCase ++;
+                    }
                 }
-                speed/=4;
+                speed/=acCase;
+                if(vehicles[i].speed.size() == 5)
+                {
+                    vehicles[i].speed.pop_front();
+                }
+                vehicles[i].speed.push_back(speed);
 
-                t << setprecision(3)<<  speed << " MPH";
+                double averageSpeed = 0;
+                for(int j = 0; j < vehicles[i].speed.size(); j++)
+                {
+                    averageSpeed += vehicles[i].speed[j];
+                }
+                averageSpeed/=vehicles[i].speed.size();
+
+                t << setprecision(3)<<  averageSpeed << " MPH";
+                if(averageSpeed > 35)
+                {
+                    colorIndex = 10;
+                }
             }
+
+            for( int j = 0; j < 4; j++ )
+                 line( this->frame, rect_points[j], rect_points[(j+1)%4], this->colors.at(colorIndex), 2, 8 );
             string speedText = t.str();
             string text = s.str();
             putText(this->frame, speedText, Point(rect_points[1].x, rect_points[1].y), FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0,0,0), 1, 8, false);
@@ -429,10 +452,6 @@ void videoProcessingThread::displayResults()
 
             for(int j = 0; j < vehicles[i].trajectory.size(); j++)
                 circle(this->aerial, vehicles[i].aerialTrajectory.at(j), 5, this->colors.at(colorIndex), -1, 8, 0);
-
-
-
-
 
         }
     }

@@ -24,6 +24,7 @@ public:
     int stop;
     deque<cv::Point> trajectory;
     deque<cv::Point> aerialTrajectory;
+    deque<double> speed;
     int maneuver;
     int getManeuver();
 
