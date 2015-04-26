@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include "videoprocessingthread.h"
 #include "qcustomplot.h"
+#include "aboutdialog.h"
 
 namespace Ui {
 class MainWindow;
@@ -26,6 +27,10 @@ private slots:
 
     void on_pushButton_clicked();
     void on_maneuverCount(int);
+    void on_actionExit_triggered();
+
+    void on_actionAbout_triggered();
+
 private:
     Ui::MainWindow *ui;
     videoProcessingThread *vpt;

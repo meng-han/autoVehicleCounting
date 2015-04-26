@@ -17,17 +17,20 @@ SOURCES += main.cpp\
     videoprocessingthread.cpp \
     WeightedMovingVarianceBGS.cpp \
     framedifferencebgs.cpp \
-    vehicle.cpp
+    vehicle.cpp \
+    aboutdialog.cpp
 
 HEADERS  += mainwindow.h \
     qcustomplot.h \
     videoprocessingthread.h \
     WeightedMovingVarianceBGS.h \
     framedifferencebgs.h \
-    vehicle.h
+    vehicle.h \
+    aboutdialog.h
 RC_FILE = logo.rc
 
-FORMS    += mainwindow.ui
+FORMS    += mainwindow.ui \
+    aboutdialog.ui
 
 INCLUDEPATH += C:\\OpenCV-2.4.9-build\\opencv\\build\\include
 #------------------------------------------------------------

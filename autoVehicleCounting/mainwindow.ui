@@ -364,6 +364,7 @@ QPushButton:hover{
     <addaction name="separator"/>
     <addaction name="actionRun"/>
     <addaction name="actionStop"/>
+    <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menuAbout">
     <property name="title">
@@ -385,7 +386,7 @@ QPushButton:hover{
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionOpen">
    <property name="text">
-    <string>Open</string>
+    <string>Open ...</string>
    </property>
   </action>
   <action name="actionDelete">
@@ -406,6 +407,11 @@ QPushButton:hover{
   <action name="actionAbout">
    <property name="text">
     <string>About ...</string>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
    </property>
   </action>
  </widget>

@@ -147,3 +147,14 @@ void MainWindow::on_pushButton_clicked()
     if(ui->videoTableWidget->rowCount()==1)
         ui->videoTableWidget->removeRow(0);
 }
+
+void MainWindow::on_actionExit_triggered()
+{
+    QCoreApplication::quit();
+}
+
+void MainWindow::on_actionAbout_triggered()
+{
+    aboutDialog *ad = new aboutDialog();
+    ad->show();
+}
