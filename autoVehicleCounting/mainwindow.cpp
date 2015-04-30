@@ -67,7 +67,7 @@ void MainWindow::init()
     ui->turnsWidget->xAxis->setRange(0, 13);
 
     // prepare y axis:
-    ui->turnsWidget->yAxis->setRange(0, 40);
+    ui->turnsWidget->yAxis->setRange(0, 60);
     ui->turnsWidget->yAxis->setPadding(5); // a bit more space to the left border
     ui->turnsWidget->yAxis->setLabel("Maneuvers Count");
     ui->turnsWidget->yAxis->grid()->setSubGridVisible(true);
@@ -86,27 +86,28 @@ void MainWindow::init()
 
 
 
+
 }
 
 void MainWindow::on_showAerial(Mat aerial)
 {
 
     namedWindow("Aerial Image",CV_NORMAL);
-    //moveWindow("Aerial Image", 300, 700);
+    //moveWindow("Aerial Image", 0, 0);
     imshow("Aerial Image", aerial);
 }
 
 void MainWindow::on_showResults(Mat frame)
 {
     namedWindow("Current Frame",CV_NORMAL);
-    //moveWindow("Current Frame", 1000, 700);
+    //moveWindow("Current Frame", 0, 700);
     imshow("Current Frame", frame);
 }
 
 void MainWindow::on_maneuverCount(int maneuver)
 {
     this->counts[maneuver-1]++;// = this->counts.at(maneuver-1)  + 1;
-    qDebug() << this->counts;
+    //qDebug() << this->counts;
     this->turns->setData(this->ticks,this->counts);
     ui->turnsWidget->replot();
 

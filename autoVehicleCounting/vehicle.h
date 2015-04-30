@@ -22,6 +22,7 @@ public:
     int invisibleCount;
     int start;
     int stop;
+    deque<double> areas;
     deque<cv::Point> trajectory;
     deque<cv::Point> aerialTrajectory;
     deque<double> speed;

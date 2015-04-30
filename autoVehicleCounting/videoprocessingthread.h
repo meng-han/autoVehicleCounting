@@ -82,7 +82,7 @@ private:
     cv::Point transformToAerial(int x1, int y1);
 
     QStringList maneuvers;
-
+    int cnt;
 
 
 

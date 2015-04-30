@@ -9,7 +9,7 @@ videoProcessingThread::videoProcessingThread(QObject *parent) :
 void videoProcessingThread::run()
 {
     this->init();
-    int cnt = 0;
+    cnt = 0;
     while(true)
     {
         ++cnt;
@@ -93,6 +93,7 @@ void videoProcessingThread::readNextFrame()
 void videoProcessingThread::detectObjects()
 {
     cv::morphologyEx(this->background, this->img_closing, MORPH_CLOSE, this->element);
+    //this->img_closing = this->background;
     Mat threshold_output;	//contours map
     cv::blur( img_closing, img_closing, cv::Size(3,3) );
     vector<vector<Point> > contours;
@@ -136,6 +137,7 @@ void videoProcessingThread::detectObjects()
         {
             this->rotatedRect.erase(this->rotatedRect.begin() + i);
         }
+        //qDebug() << width * height;
     }
 
 
@@ -181,7 +183,7 @@ vehicle videoProcessingThread::setUpNewVehicle(int j){
     setIdentity(v.KF.measurementNoiseCov, Scalar::all(1e-1));
     setIdentity(v.KF.errorCovPost, Scalar::all(.1));
     //v.rect = this->boundRect[j];
-    v.rRect = this->rotatedRect[j];
+
     return v;
 }
 
@@ -232,6 +234,8 @@ void videoProcessingThread::assignVehicles(){
     while(!distanceMatrix.empty() && !vehiclesPresent.empty())
     {
         double min_element = findMinElement(distanceMatrix);
+        //if(min_element > 0.3) break;
+        //qDebug() << "MIN_ELEMENT  " << min_element;
         int trackClosestIndex = vehiclesPresent[min_column];
         //cout << "THIS IS MIN_ELEMENT = " << min_element << " closest index" << trackClosestIndex << endl;
         int detectClosestIndex = newDetectionsIndex[min_row];
@@ -249,8 +253,30 @@ void videoProcessingThread::assignVehicles(){
         //{
         //    vehicles[trackClosestIndex].trajectory.pop_front();
         //}
+        if(!vehicles[trackClosestIndex].trajectory.empty())
+        {
+            cv::Point tempPoint = transformToAerial(measurement(0),measurement(1));
+            double xDiff = abs(tempPoint.x - vehicles[trackClosestIndex].aerialTrajectory.back().x);
+            double yDiff = abs(tempPoint.y - vehicles[trackClosestIndex].aerialTrajectory.back().y);
+
+            double diff = pow(pow(xDiff,2) + pow(yDiff,2),0.5);
+            //qDebug() << diff;
+            if(diff > 25)
+            {
+                vehicles[trackClosestIndex].trajectory.clear();
+                vehicles[trackClosestIndex].aerialTrajectory.clear();
+            }
+        }
         vehicles[trackClosestIndex].trajectory.push_back(cv::Point(measurement(0),measurement(1)));
         vehicles[trackClosestIndex].aerialTrajectory.push_back(transformToAerial(measurement(0),measurement(1)));
+
+        Point2f vertix[4];
+        vehicles[trackClosestIndex].rRect.points(vertix);
+        double width = pow(pow(vertix[0].x - vertix[1].x,2) + pow(vertix[0].y - vertix[1].y,2),0.5);
+        double height = pow(pow(vertix[0].x - vertix[3].x,2) + pow(vertix[0].y - vertix[3].y,2),0.5);
+        double area = width * height;
+        vehicles[trackClosestIndex].areas.push_back(area);
+
         Mat estimated = vehicles[trackClosestIndex].KF.correct(measurement);
         Point statePt(estimated.at<float>(0), estimated.at<float>(1));
         circle(this->frame, statePt, 10, cv::Scalar(0, 255, 0), -1, 8, 0);
@@ -286,12 +312,28 @@ void videoProcessingThread::assignVehicles(){
                 if (vehicles[i].invisibleCount > 1000)
                 {
                     vehicles[i].present = false;
-                    //vehicles[i].stop = this->cnt_iter;
+                    vehicles[i].stop = this->cnt;
                     //qDebug() << vehicles[i];
 
-                    if(vehicles[i].aerialTrajectory.size()>5)
+                    if(vehicles[i].aerialTrajectory.size()>6)
                     {
                         emit maneuverCount(vehicles[i].getManeuver());
+                        //qDebug() << vehicles[i].getManeuver();
+                        if(vehicles[i].getManeuver() == 2||
+                                vehicles[i].getManeuver() == 8
+                               )
+                        {
+                            /*************TODO*************/
+                            int tempSize = vehicles[i].areas.size() - 1;
+                            int index = floor(tempSize * 0.9);
+                            qDebug() << vehicles[i].areas.at(index) << vehicles[i].id;
+                            //qDebug() << area;
+                            if(vehicles[i].areas.at(index)>10000)
+                            {
+                                emit maneuverCount(vehicles[i].getManeuver());
+                            }
+
+                        }
                     }
                     vehicles[i].totalVisibleCount = 0;
                 } else {
@@ -303,12 +345,27 @@ void videoProcessingThread::assignVehicles(){
             } else {
                 //If his predicted point is out of the scene, regard him as gone.
                 vehicles[i].present = false;
-                if(vehicles[i].aerialTrajectory.size()>5)
+                vehicles[i].stop = this->cnt;
+                if(vehicles[i].aerialTrajectory.size()>6)
                 {
                     emit maneuverCount(vehicles[i].getManeuver());
+                    if(vehicles[i].getManeuver() == 2||
+                            vehicles[i].getManeuver() == 8
+                           )
+                    {
+                        /*************TODO*************/
+                        int tempSize = vehicles[i].areas.size() - 1;
+                        int index = floor(tempSize * 0.9);
+                        qDebug() << vehicles[i].areas.at(index) << vehicles[i].id;
+                        if(vehicles[i].areas.at(index)>10000)
+                        {
+                            emit maneuverCount(vehicles[i].getManeuver());
+                        }
+                    }
+
                 }
                 vehiclesToDelete.push_back(i);
-                //vehicles[i].stop = this->cnt_iter;
+                //
                 //this->logToBuffer(i);
                 vehicles[i].totalVisibleCount = 0;
                 unassignedTracks[i] = false;
@@ -330,7 +387,7 @@ void videoProcessingThread::assignVehicles(){
         if (newDetections[i] == false)
         {
             vehicle v = setUpNewVehicle(i);
-            //v.start = this->cnt_iter;
+            v.start = this->cnt;
             vehicles.push_back(v);
         }
     }
