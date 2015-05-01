@@ -16,6 +16,10 @@ void videoProcessingThread::run()
         if(this->stop) {destroyAllWindows();break;}
         this->readNextFrame();
         if(this->frame.empty()) break;
+        /*if(cnt == 226)
+        {
+            imwrite("frame3.png",this->frame);
+        }*/
         //pMOG2->operator()(frame, background);
         //this->bgs->process(this->frame,this->background,this->bgModel);
         this->fbgs->process(this->frame,this->background,this->bgModel);
@@ -36,11 +40,11 @@ void videoProcessingThread::run()
 
             }
             this->wtr.write(this->frame);
-            /*if(cnt == 15)
+            /*if(cnt == 226)
             {
-                imwrite("result.png",this->background);
-                imwrite("img_closing.png",this->img_closing);
-                imwrite("track.png",this->frame);
+                imwrite("result2.png",this->background);
+                imwrite("img_closing2.png",this->img_closing);
+                imwrite("track2.png",this->frame);
             }*/
         }
 
@@ -76,8 +80,12 @@ void videoProcessingThread::init()
     this->fps = this->capture.get(CV_CAP_PROP_FPS);
     if (this->fps == 29) this->fps = 30;
     this->totalFrameNumber = this->capture.get(CV_CAP_PROP_FRAME_COUNT);
-    this->wtr.open("C:/Users/Meng/Documents/Qt Projects/AutoCarCounting/output.avi",CV_FOURCC('X','V','I','D'),15, cv::Size(this->width, this->height));
-    this->aerial = imread("C:\\Users\\Meng\\Documents\\Qt Projects\\AutoCarCounting\\aerial.png");
+    QString outputAdd = QCoreApplication::applicationDirPath() + "/output.avi";
+    this->wtr.open(outputAdd.toStdString(),CV_FOURCC('X','V','I','D'),15, cv::Size(this->width, this->height));
+    QString aerialAdd = QCoreApplication::applicationDirPath() + "/aerial.png";
+
+    this->aerial = imread(aerialAdd.toStdString());
+    //"C:\\Users\\Meng\\Documents\\Qt Projects\\AutoCarCounting\\aerial.png"
 }
 
 void videoProcessingThread::readNextFrame()
@@ -103,6 +111,7 @@ void videoProcessingThread::detectObjects()
     vector<vector<Point> > contours_poly( contours.size() );
     this->boundRect.resize(contours.size());
 
+    cvtColor(this->img_closing,this->img_closing,CV_GRAY2BGR);
 
     this->rotatedRect.resize(contours.size());
     //Fit rect
@@ -111,12 +120,19 @@ void videoProcessingThread::detectObjects()
         approxPolyDP( Mat(contours[n]), contours_poly[n], 3, true );
         boundRect[n] = cv::boundingRect( Mat(contours_poly[n]) );
         this->rotatedRect[n] = minAreaRect( Mat(contours_poly[n]) );
+        /*
+        Point2f rect_points[4]; this->rotatedRect[n].points( rect_points );
+        for( int j = 0; j < 4; j++ )
+             line( this->img_closing, rect_points[j], rect_points[(j+1)%4], cv::Scalar(0,0,255), 2, 8 );
+        */
         if(boundRect[n].area() <= img_closing.cols * img_closing.rows * this->rect_delete_thresh
                 && boundRect[n].area() < img_closing.cols * img_closing.rows * 0.4)
         {
             boundRect.erase(boundRect.begin() + n);
             this->rotatedRect.erase(this->rotatedRect.begin() + n);
         }
+
+
         //if(rotatedRect[n].area() <= img_closing.cols * img_closing.rows * this->rect_delete_thresh
         //        && rotatedRect[n].area() < img_closing.cols * img_closing.rows * 0.4)
         //{
@@ -139,6 +155,15 @@ void videoProcessingThread::detectObjects()
         }
         //qDebug() << width * height;
     }
+    /*
+    cvtColor(this->img_closing,this->img_closing,CV_GRAY2BGR);
+    for(int i = this->rotatedRect.size() - 1; i >=0; i--)
+    {
+        Point2f rect_points[4]; this->rotatedRect[i].points( rect_points );
+        for( int j = 0; j < 4; j++ )
+             line( this->img_closing, rect_points[j], rect_points[(j+1)%4], cv::Scalar(0,0,255), 2, 8 );
+    }*/
+
 
 
 }
@@ -326,7 +351,7 @@ void videoProcessingThread::assignVehicles(){
                             /*************TODO*************/
                             int tempSize = vehicles[i].areas.size() - 1;
                             int index = floor(tempSize * 0.9);
-                            qDebug() << vehicles[i].areas.at(index) << vehicles[i].id;
+                            //qDebug() << vehicles[i].areas.at(index) << vehicles[i].id;
                             //qDebug() << area;
                             if(vehicles[i].areas.at(index)>10000)
                             {
@@ -356,7 +381,7 @@ void videoProcessingThread::assignVehicles(){
                         /*************TODO*************/
                         int tempSize = vehicles[i].areas.size() - 1;
                         int index = floor(tempSize * 0.9);
-                        qDebug() << vehicles[i].areas.at(index) << vehicles[i].id;
+                        //qDebug() << vehicles[i].areas.at(index) << vehicles[i].id;
                         if(vehicles[i].areas.at(index)>10000)
                         {
                             emit maneuverCount(vehicles[i].getManeuver());
